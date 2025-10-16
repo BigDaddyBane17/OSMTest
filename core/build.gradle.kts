@@ -33,8 +33,8 @@ android {
 }
 
 dependencies {
-    implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.core)
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.core.ktx)

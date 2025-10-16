@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="OSMTest.app" target="21" />
+      <module name="OSMTest.core" target="21" />
+      <module name="OSMTest.data.point" target="21" />
+      <module name="OSMTest.data.weather" target="21" />
+      <module name="OSMTest.domain.point" target="21" />
+      <module name="OSMTest.domain.weather" target="21" />
+      <module name="OSMTest.feature.map" target="21" />
+      <module name="OSMTest.feature.map.data" target="21" />
+      <module name="OSMTest.feature.map.domain" target="21" />
+      <module name="OSMTest.feature.mapDetails" target="21" />
+      <module name="OSMTest.feature.mapDetails.domain" target="21" />
+      <module name="OSMTest.feautre.map" target="21" />
+      <module name="OSMTest.feautre.map.data" target="21" />
+      <module name="OSMTest.feautre.map.domain" target="21" />
+      <module name="OSMTest.feautre.mapDetails" target="21" />
+      <module name="OSMTest.feautre.mapDetails.domain" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

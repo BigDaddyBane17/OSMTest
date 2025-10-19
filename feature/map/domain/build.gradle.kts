@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.domain"
+    namespace = "com.example.map.domain"
     compileSdk = 35
 
     defaultConfig {

@@ -10,9 +10,7 @@ interface WeatherApi {
     suspend fun getCurrent(
         @Query("latitude") lat: Double,
         @Query("longitude") lon: Double,
-        @Query("current") current: String = "temperature_2m,wind_speed_10m",
-        @Query("temperature_unit") tempUnit: String = "celsius",
-        @Query("wind_speed_unit") windUnit: String = "ms",
+        @Query("current") current: String = "temperature_2m,relative_humidity_2m,wind_speed_10m",
         @Query("timezone") tz: String = "auto"
     ): WeatherResponse
 }

@@ -19,6 +19,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -45,6 +46,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.events.MapListener
 import org.osmdroid.events.ScrollEvent
@@ -62,15 +64,17 @@ import kotlin.math.sin
 fun MapScreen(
     onNavigateToDetails: (Long) -> Unit = {}
 ) {
-    val vm: MapViewModel = hiltViewModel()
-    val state by vm.uiState.collectAsStateWithLifecycle()
+    val viewmodel: MapViewModel = hiltViewModel()
+    val state by viewmodel.uiState.collectAsStateWithLifecycle()
     val snack = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
-        vm.effects.collect { eff ->
-            when (eff) {
-                is MapEffect.NavigateToDetails -> onNavigateToDetails(eff.pointId)
-                is MapEffect.ShowMessage -> snack.showSnackbar(eff.text)
+        viewmodel.effects.collect { effect ->
+            when (effect) {
+                is MapEffect.NavigateToDetails -> onNavigateToDetails(effect.pointId)
+                is MapEffect.ShowMessage -> launch {
+                    snack.showSnackbar(effect.text, duration = SnackbarDuration.Short)
+                }
             }
         }
     }
@@ -83,7 +87,7 @@ fun MapScreen(
             is MapUiState.Error -> Box(Modifier.fillMaxSize().padding(padd), contentAlignment = Alignment.Center) {
                 Text("Ошибка: ${s.message}", color = MaterialTheme.colorScheme.error)
             }
-            is MapUiState.Success -> MapContent(s, vm::handleIntent, Modifier.padding(padd))
+            is MapUiState.Success -> MapContent(s, viewmodel::handleIntent, Modifier.padding(padd))
         }
     }
 }
@@ -278,7 +282,7 @@ private fun RadialMenu(
     Box(Modifier.fillMaxSize().clickable(onClick = onDismiss))
 
     FabEmoji("🌤️", Modifier.absoluteOffset { pos(-90f) }, onWeather)
-    FabEmoji("ℹ️",  Modifier.absoluteOffset { pos( 30f) }, onInfo)
+    FabEmoji("ℹ️",  Modifier.absoluteOffset { pos(30f) }, onInfo)
     FabEmoji("↔️",  Modifier.absoluteOffset { pos(150f) }, onMove)
 }
 

@@ -9,13 +9,11 @@ sealed interface AppError {
     }
 
     sealed interface Data: AppError {
-        data object NotFound: Data
         data object Parse: Data
     }
 
     sealed interface Db: AppError {
         data object Read: Db
-        data object Write: Db
     }
 
     data class Unknown(val cause: Throwable?): AppError

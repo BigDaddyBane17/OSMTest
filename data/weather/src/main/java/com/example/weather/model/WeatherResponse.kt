@@ -1,13 +1,15 @@
 package com.example.weather.model
 
+import com.google.gson.annotations.SerializedName
+
 
 data class WeatherResponse(
-    val timezone: String?,
-    val current: CurrentBlock?
+    @SerializedName("timezone") val timezone: String?,
+    @SerializedName("current") val current: CurrentBlock?
 )
 
 data class CurrentBlock(
-    val time: String?,
-    val temperature: Double?,
-    val windSpeed: Double?
+    @SerializedName("time") val time: String?,
+    @SerializedName("temperature_2m") val temperature: Double?,
+    @SerializedName("wind_speed_10m") val windSpeed: Double?
 )

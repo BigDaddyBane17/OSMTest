@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,7 +26,12 @@ fun MapDetailsScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Информация о точке") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Text("←") }
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_back),
+                            contentDescription = "Назад"
+                        )
+                    }
                 }
             )
         }
@@ -41,7 +47,10 @@ fun MapDetailsScreen(
 @Composable
 fun Content(s: MapDetailsUiState.Content, modifier: Modifier = Modifier) {
     Column(
-        Modifier.fillMaxSize().then(modifier).padding(16.dp),
+        Modifier
+            .fillMaxSize()
+            .then(modifier)
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ElevatedCard(Modifier.fillMaxWidth()) {
@@ -60,7 +69,7 @@ fun Content(s: MapDetailsUiState.Content, modifier: Modifier = Modifier) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Погода (актуальная)", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 Text("Температура: ${s.temperature?.let { "${it}°C" } ?: "—"}")
-                Text("Ветер: ${s.windSpeed?.let { "${it} м/с" } ?: "—"}")
+                Text("Ветер: ${s.windSpeed?.let { "$it м/с" } ?: "—"}")
             }
         }
     }

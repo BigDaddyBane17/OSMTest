@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.point.Point
 import com.example.point.PointUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val pointUseCases: PointUseCases,

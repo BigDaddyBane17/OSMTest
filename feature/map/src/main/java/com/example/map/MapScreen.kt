@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.CameraState
 import com.example.map.components.CenterCrosshair
 import com.example.map.components.RadialMenu
+import com.example.map.utils.enqueueDownload
 import kotlinx.coroutines.launch
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.events.MapListener
@@ -70,6 +71,7 @@ fun MapScreen(
     val viewmodel: MapViewModel = hiltViewModel()
     val state by viewmodel.uiState.collectAsStateWithLifecycle()
     val snack = remember { SnackbarHostState() }
+    val ctx = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewmodel.effects.collect { effect ->
@@ -77,6 +79,10 @@ fun MapScreen(
                 is MapEffect.NavigateToDetails -> onNavigateToDetails(effect.pointId)
                 is MapEffect.ShowMessage -> launch {
                     snack.showSnackbar(effect.text, duration = SnackbarDuration.Short)
+                }
+                is MapEffect.Download -> {
+                    enqueueDownload(ctx, effect.url, effect.filename, effect.mime)
+                    launch { snack.showSnackbar("Скачивание началось", duration = SnackbarDuration.Short) }
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.example.map
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.CameraState
@@ -116,7 +117,24 @@ class MapViewModel @Inject constructor(
     }
 
     private fun loadWeather(pointId: Long) = viewModelScope.launch {
-        _effects.emit(MapEffect.ShowMessage("Загрузка погоды для $pointId…"))
+
+        val s = _uiState.value as? MapUiState.Success ?: return@launch
+        val p = s.points.find { it.id == pointId } ?: return@launch
+        Log.d("WEATHER", "lat=${p.latitude}, lon=${p.longitude}")
+        val url = buildString {
+            append("https://api.open-meteo.com/v1/forecast")
+            append("?latitude="); append(p.latitude)
+            append("&longitude="); append(p.longitude)
+            append("&hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m")
+            append("&forecast_days=1")
+            append("&timezone=auto")
+
+        }
+
+        val filename = "weather_point_${p.id}_${System.currentTimeMillis()}.json"
+
+        _effects.emit(MapEffect.ShowMessage("Начинаю скачивание прогноза..."))
+        _effects.emit(MapEffect.Download(url = url, filename = filename))
     }
 
     private fun navigateToPointDetails(pointId: Long) = viewModelScope.launch {

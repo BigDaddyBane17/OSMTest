@@ -23,4 +23,9 @@ sealed interface MapIntent {
 sealed interface MapEffect {
     data class NavigateToDetails(val pointId: Long) : MapEffect
     data class ShowMessage(val text: String) : MapEffect
+    data class Download(
+        val url: String,
+        val filename: String,
+        val mime: String = "text/csv"
+    ) : MapEffect
 }

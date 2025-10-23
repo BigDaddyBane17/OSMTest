@@ -1,6 +1,8 @@
 package com.example.map
 
 import android.graphics.Point
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -61,10 +63,8 @@ import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
-import kotlin.math.cos
-import kotlin.math.roundToInt
-import kotlin.math.sin
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun MapScreen(
     onNavigateToDetails: (Long) -> Unit = {}
@@ -81,9 +81,8 @@ fun MapScreen(
                 is MapEffect.ShowMessage -> launch {
                     snack.showSnackbar(effect.text, duration = SnackbarDuration.Short)
                 }
-                is MapEffect.Download -> {
+                is MapEffect.Download -> launch {
                     enqueueDownload(ctx, effect.url, effect.filename, effect.mime)
-                    launch { snack.showSnackbar("Скачивание началось", duration = SnackbarDuration.Short) }
                 }
             }
         }

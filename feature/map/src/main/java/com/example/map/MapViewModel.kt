@@ -133,7 +133,6 @@ class MapViewModel @Inject constructor(
 
         val filename = "weather_point_${p.id}_${System.currentTimeMillis()}.json"
 
-        _effects.emit(MapEffect.ShowMessage("Начинаю скачивание прогноза..."))
         _effects.emit(MapEffect.Download(url = url, filename = filename))
     }
 

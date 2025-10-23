@@ -26,6 +26,6 @@ sealed interface MapEffect {
     data class Download(
         val url: String,
         val filename: String,
-        val mime: String = "text/csv"
+        val mime:String  = "application/json"
     ) : MapEffect
 }

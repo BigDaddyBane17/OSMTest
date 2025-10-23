@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.PointDetails
 import com.example.domain.usecase.ObservePointDetails
-import com.example.point.PointRepository
+import com.example.point.repository.PointRepository
 import com.example.weather.repository.WeatherRepository
 
 import dagger.hilt.android.lifecycle.HiltViewModel

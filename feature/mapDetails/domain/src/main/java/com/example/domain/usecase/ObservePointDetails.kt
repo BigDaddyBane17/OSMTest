@@ -2,7 +2,7 @@ package com.example.domain.usecase
 
 import com.example.core.result.AppResult
 import com.example.domain.model.PointDetails
-import com.example.point.PointRepository
+import com.example.point.repository.PointRepository
 import com.example.weather.repository.WeatherRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

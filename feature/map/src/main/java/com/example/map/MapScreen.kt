@@ -46,6 +46,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.domain.model.CameraState
+import com.example.map.components.CenterCrosshair
+import com.example.map.components.RadialMenu
 import kotlinx.coroutines.launch
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.events.MapListener
@@ -130,14 +133,26 @@ private fun MapContent(
         mapView.addMapListener(object : MapListener {
             override fun onScroll(event: ScrollEvent?): Boolean {
                 val c = mapView.mapCenter
-                onIntent(MapIntent.CameraChanged(CameraState(c.latitude, c.longitude, mapView.zoomLevelDouble)))
+                onIntent(MapIntent.CameraChanged(
+                    CameraState(
+                        c.latitude,
+                        c.longitude,
+                        mapView.zoomLevelDouble
+                    )
+                ))
                 return false
             }
 
 
             override fun onZoom(event: ZoomEvent?): Boolean {
                 val c = mapView.mapCenter
-                onIntent(MapIntent.CameraChanged(CameraState(c.latitude, c.longitude, mapView.zoomLevelDouble)))
+                onIntent(MapIntent.CameraChanged(
+                    CameraState(
+                        c.latitude,
+                        c.longitude,
+                        mapView.zoomLevelDouble
+                    )
+                ))
                 return false
             }
         })
@@ -160,7 +175,13 @@ private fun MapContent(
                     mv.controller.setCenter(GeoPoint(s.cameraLatitude, s.cameraLongitude))
                     appliedInitialCamera = true
                     val c = mv.mapCenter
-                    onIntent(MapIntent.CameraChanged(CameraState(c.latitude, c.longitude, mv.zoomLevelDouble)))
+                    onIntent(MapIntent.CameraChanged(
+                        CameraState(
+                            c.latitude,
+                            c.longitude,
+                            mv.zoomLevelDouble
+                        )
+                    ))
                 }
 
                 if (mv.overlays.none { it is MapEventsOverlay }) {
@@ -235,60 +256,3 @@ private fun MapContent(
 }
 
 
-@Composable
-private fun CenterCrosshair() {
-    Box(Modifier.fillMaxSize()) {
-        val size = 18.dp
-        val stroke = 2.dp
-        Box(
-            Modifier
-                .width(stroke)
-                .height(size)
-                .align(Alignment.Center)
-                .background(MaterialTheme.colorScheme.primary)
-        )
-        Box(
-            Modifier
-                .height(stroke)
-                .width(size)
-                .align(Alignment.Center)
-                .background(MaterialTheme.colorScheme.primary)
-        )
-    }
-}
-
-@Composable
-private fun RadialMenu(
-    center: Offset,
-    onWeather: () -> Unit,
-    onInfo: () -> Unit,
-    onMove: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val density = LocalDensity.current
-    val radius = 72.dp
-    val fabSize = 56.dp
-    val rPx = with(density) { radius.toPx() }
-    val halfFabPx = with(density) { fabSize.toPx() / 2f }
-
-    fun pos(angleDeg: Float): IntOffset {
-        val rad = Math.toRadians(angleDeg.toDouble())
-        val cx = center.x + rPx * cos(rad) - halfFabPx
-        val cy = center.y + rPx * sin(rad) - halfFabPx
-        return IntOffset(cx.roundToInt(), cy.roundToInt())
-    }
-
-
-    Box(Modifier.fillMaxSize().clickable(onClick = onDismiss))
-
-    FabEmoji("🌤️", Modifier.absoluteOffset { pos(-90f) }, onWeather)
-    FabEmoji("ℹ️",  Modifier.absoluteOffset { pos(30f) }, onInfo)
-    FabEmoji("↔️",  Modifier.absoluteOffset { pos(150f) }, onMove)
-}
-
-@Composable
-private fun FabEmoji(symbol: String, modifier: Modifier, onClick: () -> Unit) {
-    FloatingActionButton(onClick = onClick, modifier = modifier.size(56.dp)) {
-        Text(symbol)
-    }
-}

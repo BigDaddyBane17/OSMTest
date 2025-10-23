@@ -2,8 +2,10 @@ package com.example.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.point.Point
-import com.example.point.PointUseCases
+import com.example.domain.model.CameraState
+import com.example.domain.usecase.CameraUseCases
+import com.example.point.model.Point
+import com.example.point.usecase.PointUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,7 +38,7 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 pointUseCases.getAllPoints(),
-                cameraUseCases.getCameraState()
+                cameraUseCases.get()
             ) { pts, cam ->
                 val prev = _uiState.value as? MapUiState.Success
                 MapUiState.Success(
@@ -57,7 +59,7 @@ class MapViewModel @Inject constructor(
             cameraEvents
                 .debounce(300)
                 .distinctUntilChangedBy { Triple(it.latitude, it.longitude, it.zoom) }
-                .collect { cameraUseCases.saveCameraState(it) }
+                .collect { cameraUseCases.save(it) }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.example.point
 
 import android.content.Context
+import com.example.point.repository.PointRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

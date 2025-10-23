@@ -1,7 +1,7 @@
 package com.example.map
 
 import androidx.compose.ui.geometry.Offset
-import com.example.point.Point
+import com.example.point.model.Point
 
 sealed class MapUiState {
     data object Loading : MapUiState()

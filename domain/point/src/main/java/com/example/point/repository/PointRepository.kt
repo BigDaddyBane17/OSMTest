@@ -1,5 +1,6 @@
-package com.example.point
+package com.example.point.repository
 
+import com.example.point.model.Point
 import kotlinx.coroutines.flow.Flow
 
 interface PointRepository {

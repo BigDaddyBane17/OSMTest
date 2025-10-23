@@ -1,4 +1,4 @@
-package com.example.map
+package com.example.domain.model
 
 data class CameraState(
     val latitude: Double = 55.751244,

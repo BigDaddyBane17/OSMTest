@@ -1,6 +1,7 @@
 package com.example.map
 
 import androidx.compose.ui.geometry.Offset
+import com.example.domain.model.CameraState
 
 sealed interface MapIntent {
     data class AddPoint(val lat: Double, val lon: Double) : MapIntent

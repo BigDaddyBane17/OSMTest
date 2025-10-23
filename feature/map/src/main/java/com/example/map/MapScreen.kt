@@ -82,6 +82,7 @@ fun MapScreen(
         }
     }
 
+
     Scaffold(snackbarHost = { SnackbarHost(snack) }) { padd ->
         when (val s = state) {
             MapUiState.Loading -> Box(Modifier.fillMaxSize().padding(padd), contentAlignment = Alignment.Center) {
@@ -129,6 +130,8 @@ private fun MapContent(
         }
     }
 
+
+
     LaunchedEffect(mapView) {
         mapView.addMapListener(object : MapListener {
             override fun onScroll(event: ScrollEvent?): Boolean {
@@ -174,14 +177,7 @@ private fun MapContent(
                     mv.controller.setZoom(s.cameraZoom)
                     mv.controller.setCenter(GeoPoint(s.cameraLatitude, s.cameraLongitude))
                     appliedInitialCamera = true
-                    val c = mv.mapCenter
-                    onIntent(MapIntent.CameraChanged(
-                        CameraState(
-                            c.latitude,
-                            c.longitude,
-                            mv.zoomLevelDouble
-                        )
-                    ))
+
                 }
 
                 if (mv.overlays.none { it is MapEventsOverlay }) {

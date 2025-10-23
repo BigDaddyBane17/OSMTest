@@ -57,7 +57,7 @@ class MapViewModel @Inject constructor(
 
         viewModelScope.launch {
             cameraEvents
-                .debounce(300)
+                .debounce(100)
                 .distinctUntilChangedBy { Triple(it.latitude, it.longitude, it.zoom) }
                 .collect { cameraUseCases.save(it) }
         }
@@ -122,4 +122,5 @@ class MapViewModel @Inject constructor(
     private fun navigateToPointDetails(pointId: Long) = viewModelScope.launch {
         _effects.emit(MapEffect.NavigateToDetails(pointId))
     }
+
 }

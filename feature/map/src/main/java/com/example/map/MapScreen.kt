@@ -46,6 +46,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.domain.model.CameraState
+import com.example.map.components.CenterCrosshair
+import com.example.map.components.RadialMenu
+import com.example.map.utils.enqueueDownload
 import kotlinx.coroutines.launch
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.events.MapListener
@@ -53,6 +57,7 @@ import org.osmdroid.events.ScrollEvent
 import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
@@ -67,6 +72,7 @@ fun MapScreen(
     val viewmodel: MapViewModel = hiltViewModel()
     val state by viewmodel.uiState.collectAsStateWithLifecycle()
     val snack = remember { SnackbarHostState() }
+    val ctx = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewmodel.effects.collect { effect ->
@@ -75,9 +81,14 @@ fun MapScreen(
                 is MapEffect.ShowMessage -> launch {
                     snack.showSnackbar(effect.text, duration = SnackbarDuration.Short)
                 }
+                is MapEffect.Download -> {
+                    enqueueDownload(ctx, effect.url, effect.filename, effect.mime)
+                    launch { snack.showSnackbar("Скачивание началось", duration = SnackbarDuration.Short) }
+                }
             }
         }
     }
+
 
     Scaffold(snackbarHost = { SnackbarHost(snack) }) { padd ->
         when (val s = state) {
@@ -107,6 +118,9 @@ private fun MapContent(
     val mapView = remember {
         MapView(context).apply {
             setTileSource(TileSourceFactory.MAPNIK)
+            zoomController.setVisibility(
+                CustomZoomButtonsController.Visibility.NEVER
+            )
             setMultiTouchControls(true)
         }
     }
@@ -126,18 +140,32 @@ private fun MapContent(
         }
     }
 
+
+
     LaunchedEffect(mapView) {
         mapView.addMapListener(object : MapListener {
             override fun onScroll(event: ScrollEvent?): Boolean {
                 val c = mapView.mapCenter
-                onIntent(MapIntent.CameraChanged(CameraState(c.latitude, c.longitude, mapView.zoomLevelDouble)))
+                onIntent(MapIntent.CameraChanged(
+                    CameraState(
+                        c.latitude,
+                        c.longitude,
+                        mapView.zoomLevelDouble
+                    )
+                ))
                 return false
             }
 
 
             override fun onZoom(event: ZoomEvent?): Boolean {
                 val c = mapView.mapCenter
-                onIntent(MapIntent.CameraChanged(CameraState(c.latitude, c.longitude, mapView.zoomLevelDouble)))
+                onIntent(MapIntent.CameraChanged(
+                    CameraState(
+                        c.latitude,
+                        c.longitude,
+                        mapView.zoomLevelDouble
+                    )
+                ))
                 return false
             }
         })
@@ -159,8 +187,7 @@ private fun MapContent(
                     mv.controller.setZoom(s.cameraZoom)
                     mv.controller.setCenter(GeoPoint(s.cameraLatitude, s.cameraLongitude))
                     appliedInitialCamera = true
-                    val c = mv.mapCenter
-                    onIntent(MapIntent.CameraChanged(CameraState(c.latitude, c.longitude, mv.zoomLevelDouble)))
+
                 }
 
                 if (mv.overlays.none { it is MapEventsOverlay }) {
@@ -235,60 +262,3 @@ private fun MapContent(
 }
 
 
-@Composable
-private fun CenterCrosshair() {
-    Box(Modifier.fillMaxSize()) {
-        val size = 18.dp
-        val stroke = 2.dp
-        Box(
-            Modifier
-                .width(stroke)
-                .height(size)
-                .align(Alignment.Center)
-                .background(MaterialTheme.colorScheme.primary)
-        )
-        Box(
-            Modifier
-                .height(stroke)
-                .width(size)
-                .align(Alignment.Center)
-                .background(MaterialTheme.colorScheme.primary)
-        )
-    }
-}
-
-@Composable
-private fun RadialMenu(
-    center: Offset,
-    onWeather: () -> Unit,
-    onInfo: () -> Unit,
-    onMove: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val density = LocalDensity.current
-    val radius = 72.dp
-    val fabSize = 56.dp
-    val rPx = with(density) { radius.toPx() }
-    val halfFabPx = with(density) { fabSize.toPx() / 2f }
-
-    fun pos(angleDeg: Float): IntOffset {
-        val rad = Math.toRadians(angleDeg.toDouble())
-        val cx = center.x + rPx * cos(rad) - halfFabPx
-        val cy = center.y + rPx * sin(rad) - halfFabPx
-        return IntOffset(cx.roundToInt(), cy.roundToInt())
-    }
-
-
-    Box(Modifier.fillMaxSize().clickable(onClick = onDismiss))
-
-    FabEmoji("🌤️", Modifier.absoluteOffset { pos(-90f) }, onWeather)
-    FabEmoji("ℹ️",  Modifier.absoluteOffset { pos(30f) }, onInfo)
-    FabEmoji("↔️",  Modifier.absoluteOffset { pos(150f) }, onMove)
-}
-
-@Composable
-private fun FabEmoji(symbol: String, modifier: Modifier, onClick: () -> Unit) {
-    FloatingActionButton(onClick = onClick, modifier = modifier.size(56.dp)) {
-        Text(symbol)
-    }
-}

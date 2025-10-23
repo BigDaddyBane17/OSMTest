@@ -1,6 +1,7 @@
 package com.example.map
 
 import androidx.compose.ui.geometry.Offset
+import com.example.domain.model.CameraState
 
 sealed interface MapIntent {
     data class AddPoint(val lat: Double, val lon: Double) : MapIntent
@@ -22,4 +23,9 @@ sealed interface MapIntent {
 sealed interface MapEffect {
     data class NavigateToDetails(val pointId: Long) : MapEffect
     data class ShowMessage(val text: String) : MapEffect
+    data class Download(
+        val url: String,
+        val filename: String,
+        val mime: String = "text/csv"
+    ) : MapEffect
 }

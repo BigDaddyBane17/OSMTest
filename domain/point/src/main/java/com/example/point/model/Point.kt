@@ -1,4 +1,4 @@
-package com.example.point
+package com.example.point.model
 
 data class Point(
     val id: Long = 0,

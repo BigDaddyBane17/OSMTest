@@ -43,6 +43,8 @@ android {
 
 dependencies {
     implementation(project(":feature:map"))
+    implementation(project(":feature:map:data"))
+    implementation(project(":feature:map:domain"))
 
     implementation(project(":feature:mapDetails"))
 

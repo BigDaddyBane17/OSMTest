@@ -17,7 +17,6 @@ retrofit = "2.11.0"
 okhttp = "4.12.0"
 coroutines = "1.9.0"
 lottie = "6.4.0"
-coil = "2.7.0"
 accompanist = "0.36.0"
 osmdroid = "6.1.18"
 navigationCompose = "2.8.2"
@@ -28,7 +27,6 @@ material = "1.13.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-foundation = { module = "androidx.compose.foundation:foundation" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 
@@ -47,8 +45,6 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 accompanist-systemuicontroller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }
 
-# Coil
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 # Coroutines
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }

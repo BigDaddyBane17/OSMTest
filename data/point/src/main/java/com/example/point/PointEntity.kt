@@ -2,6 +2,7 @@ package com.example.point
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.point.model.Point
 
 @Entity(tableName = "points")
 data class PointEntity(

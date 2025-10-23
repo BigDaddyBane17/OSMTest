@@ -1,5 +1,7 @@
-package com.example.point
+package com.example.point.usecase
 
+import com.example.point.model.Point
+import com.example.point.repository.PointRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

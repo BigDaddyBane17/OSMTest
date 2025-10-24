@@ -1,10 +1,12 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
-    namespace = "com.example.domain"
+    namespace = "com.example.map.domain"
     compileSdk = 35
 
     defaultConfig {
@@ -36,6 +38,9 @@ dependencies {
     implementation(project(":domain:point"))
     implementation(project(":domain:weather"))
     implementation(project(":core"))
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     implementation(libs.kotlinx.coroutines.core)
 

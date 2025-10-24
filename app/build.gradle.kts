@@ -43,6 +43,8 @@ android {
 
 dependencies {
     implementation(project(":feature:map"))
+    implementation(project(":feature:map:data"))
+    implementation(project(":feature:map:domain"))
 
     implementation(project(":feature:mapDetails"))
 
@@ -50,7 +52,6 @@ dependencies {
 
     implementation(project(":domain:point"))
     implementation(project(":domain:weather"))
-
 
     implementation(project(":data:point"))
     implementation(project(":data:weather"))
@@ -61,7 +62,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
-
+    implementation(libs.osmdroid)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -76,7 +77,6 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.accompanist.systemuicontroller)
-    implementation(libs.timber)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -42,8 +42,6 @@ dependencies {
     implementation(project(":domain:point"))
     implementation(project(":domain:weather"))
 
-    implementation(project(":core"))
-
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.material3)
@@ -56,10 +54,12 @@ dependencies {
     implementation(libs.osmdroid)
 
     implementation(libs.accompanist.permissions)
+    implementation(libs.hilt.navigation.compose)
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
+    implementation(libs.datastore.preferences)
 
     implementation(libs.kotlinx.coroutines.android)
+
 }

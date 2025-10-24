@@ -1,4 +1,4 @@
-package com.example.map.data.di
+package com.example.data.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore

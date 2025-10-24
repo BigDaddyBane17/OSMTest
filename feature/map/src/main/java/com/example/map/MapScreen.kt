@@ -247,11 +247,11 @@ private fun MapContent(
 
         if (s.selectedPointId != null && dynamicAnchor != null && !s.isMoveMode) {
             RadialMenu(
-                center    = dynamicAnchor!!,
+                center = dynamicAnchor!!,
                 onWeather = { onIntent(MapIntent.LoadWeather(s.selectedPointId)) },
-                onInfo    = { onIntent(MapIntent.NavigateToPointDetails(s.selectedPointId)) },
-                onMove    = { onIntent(MapIntent.StartMoveMode(s.selectedPointId)) },
-                onDelete  = { onIntent(MapIntent.DeletePoint(s.selectedPointId)) },
+                onInfo = { onIntent(MapIntent.NavigateToPointDetails(s.selectedPointId)) },
+                onMove = { onIntent(MapIntent.StartMoveMode(s.selectedPointId)) },
+                onDelete = { onIntent(MapIntent.DeletePoint(s.selectedPointId)) },
                 onDismiss = {
                     dynamicAnchor = null
                     onIntent(MapIntent.ClearSelection)

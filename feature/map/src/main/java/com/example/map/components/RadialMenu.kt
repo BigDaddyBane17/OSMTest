@@ -1,12 +1,18 @@
 package com.example.map.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -35,11 +41,15 @@ fun RadialMenu(
         return IntOffset(cx.roundToInt(), cy.roundToInt())
     }
 
-
-    Box(Modifier.fillMaxSize().clickable(onClick = onDismiss))
+    Box(
+        Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { onDismiss() })
+            }
+    )
 
     FabEmoji("🌤️", Modifier.absoluteOffset { pos(-90f) }, onWeather)
     FabEmoji("ℹ️",  Modifier.absoluteOffset { pos(30f) }, onInfo)
     FabEmoji("↔️",  Modifier.absoluteOffset { pos(150f) }, onMove)
 }
-

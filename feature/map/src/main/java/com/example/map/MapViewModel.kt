@@ -70,12 +70,11 @@ class MapViewModel @Inject constructor(
             is MapIntent.SelectPoint -> selectPoint(i.pointId, i.anchor)
             is MapIntent.UpdatePointPosition -> updatePointPosition(i.pointId, i.lat, i.lon)
             is MapIntent.DeletePoint -> deletePoint(i.pointId)
-            MapIntent.ClearSelection -> reduce { it.copy(selectedPointId = null, radialAnchor = null) }
+            is MapIntent.ClearSelection -> reduce { it.copy(selectedPointId = null, radialAnchor = null) }
 
             is MapIntent.StartMoveMode -> reduce { it.copy(isMoveMode = true, movePointId = i.pointId, radialAnchor = null, selectedPointId = i.pointId) }
-            MapIntent.CancelMoveMode -> reduce { it.copy(isMoveMode = false, movePointId = null) }
-            MapIntent.ApplyMove -> applyMoveToCenter()
-
+            is MapIntent.CancelMoveMode -> reduce { it.copy(isMoveMode = false, movePointId = null) }
+            is MapIntent.ApplyMove -> applyMoveToCenter(i.latitude, i.longitude)
             is MapIntent.CameraChanged -> cameraEvents.tryEmit(i.camera)
 
             is MapIntent.LoadWeather -> loadWeather(i.pointId)
@@ -94,12 +93,16 @@ class MapViewModel @Inject constructor(
     }
 
     private fun selectPoint(pointId: Long, anchor: androidx.compose.ui.geometry.Offset?) {
-        reduce { it.copy(selectedPointId = pointId, radialAnchor = anchor) }
+        reduce {
+            it.copy(selectedPointId = pointId, radialAnchor = anchor)
+        }
     }
 
     private fun updatePointPosition(pointId: Long, lat: Double, lon: Double) = viewModelScope.launch {
         val s = _uiState.value as? MapUiState.Success ?: return@launch
-        val p = s.points.find { it.id == pointId } ?: return@launch
+        val p = s.points.find {
+            it.id == pointId
+        } ?: return@launch
         pointUseCases.updatePoint(p.copy(latitude = lat, longitude = lon))
     }
 
@@ -108,12 +111,16 @@ class MapViewModel @Inject constructor(
         s.points.find { it.id == pointId }?.let { pointUseCases.deletePoint(it) }
     }
 
-    private fun applyMoveToCenter() {
+    private fun applyMoveToCenter(lat: Double, lon: Double) {
         val s = _uiState.value as? MapUiState.Success ?: return
         val id = s.movePointId ?: return
-        handleIntent(MapIntent.UpdatePointPosition(id, s.cameraLatitude, s.cameraLongitude))
-        reduce { it.copy(isMoveMode = false, movePointId = null) }
-        viewModelScope.launch { _effects.emit(MapEffect.ShowMessage("Точка перемещена")) }
+        handleIntent(MapIntent.UpdatePointPosition(id, lat, lon))
+        reduce {
+            it.copy(isMoveMode = false, movePointId = null)
+        }
+        viewModelScope.launch {
+            _effects.emit(MapEffect.ShowMessage("Точка перемещена"))
+        }
     }
 
     private fun loadWeather(pointId: Long) = viewModelScope.launch {

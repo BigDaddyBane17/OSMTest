@@ -12,7 +12,7 @@ sealed interface MapIntent {
 
     data class StartMoveMode(val pointId: Long) : MapIntent
     data object CancelMoveMode : MapIntent
-    data object ApplyMove : MapIntent
+    data class ApplyMove(val latitude: Double, val longitude: Double) : MapIntent
 
     data class CameraChanged(val camera: CameraState) : MapIntent
 

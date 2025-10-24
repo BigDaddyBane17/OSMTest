@@ -74,6 +74,7 @@ fun MapScreen(
                 is MapEffect.ShowMessage -> launch {
                     snack.showSnackbar(effect.text, duration = SnackbarDuration.Short)
                 }
+
                 is MapEffect.Download -> launch {
                     enqueueDownload(ctx, effect.url, effect.filename, effect.mime)
                 }
@@ -81,15 +82,26 @@ fun MapScreen(
         }
     }
 
-
     Scaffold(snackbarHost = { SnackbarHost(snack) }) { padd ->
         when (val s = state) {
-            MapUiState.Loading -> Box(Modifier.fillMaxSize().padding(padd), contentAlignment = Alignment.Center) {
+            MapUiState.Loading -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padd),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator()
             }
-            is MapUiState.Error -> Box(Modifier.fillMaxSize().padding(padd), contentAlignment = Alignment.Center) {
+
+            is MapUiState.Error -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padd),
+                contentAlignment = Alignment.Center
+            ) {
                 Text("Ошибка: ${s.message}", color = MaterialTheme.colorScheme.error)
             }
+
             is MapUiState.Success -> MapContent(s, viewmodel::handleIntent, Modifier.padding(padd))
         }
     }
@@ -103,25 +115,36 @@ private fun MapContent(
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+
     var boxOffset by remember { mutableStateOf(IntOffset.Zero) }
     var appliedInitialCamera by remember { mutableStateOf(false) }
     val isMoveModeState = rememberUpdatedState(s.isMoveMode)
+    var dynamicAnchor by remember { mutableStateOf<Offset?>(null) }
 
     val mapView = remember {
         MapView(context).apply {
             setTileSource(TileSourceFactory.MAPNIK)
-            zoomController.setVisibility(
-                CustomZoomButtonsController.Visibility.NEVER
-            )
+            zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
             setMultiTouchControls(true)
         }
+    }
+
+    fun recalcAnchor() {
+        val selId = s.selectedPointId ?: run { dynamicAnchor = null; return }
+        val p = s.points.find { it.id == selId } ?: run { dynamicAnchor = null; return }
+        val scr = Point()
+        mapView.projection.toPixels(GeoPoint(p.latitude, p.longitude), scr)
+        dynamicAnchor = Offset(
+            (scr.x - boxOffset.x).toFloat(),
+            (scr.y - boxOffset.y).toFloat()
+        )
     }
 
     DisposableEffect(lifecycle, mapView) {
         val obs = LifecycleEventObserver { _, e ->
             when (e) {
                 Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE  -> mapView.onPause()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
                 else -> Unit
             }
         }
@@ -132,38 +155,49 @@ private fun MapContent(
         }
     }
 
-
-
     LaunchedEffect(mapView) {
         mapView.addMapListener(object : MapListener {
             override fun onScroll(event: ScrollEvent?): Boolean {
+                recalcAnchor()
                 val c = mapView.mapCenter
-                onIntent(MapIntent.CameraChanged(
-                    CameraState(
-                        c.latitude,
-                        c.longitude,
-                        mapView.zoomLevelDouble
+                onIntent(
+                    MapIntent.CameraChanged(
+                        CameraState(
+                            c.latitude,
+                            c.longitude,
+                            mapView.zoomLevelDouble
+                        )
                     )
-                ))
+                )
                 return false
             }
 
-
             override fun onZoom(event: ZoomEvent?): Boolean {
+                recalcAnchor()
                 val c = mapView.mapCenter
-                onIntent(MapIntent.CameraChanged(
-                    CameraState(
-                        c.latitude,
-                        c.longitude,
-                        mapView.zoomLevelDouble
+                onIntent(
+                    MapIntent.CameraChanged(
+                        CameraState(
+                            c.latitude,
+                            c.longitude,
+                            mapView.zoomLevelDouble
+                        )
                     )
-                ))
+                )
                 return false
             }
         })
     }
 
-    Box(Modifier.fillMaxSize().then(modifier)) {
+    LaunchedEffect(s.selectedPointId, boxOffset, appliedInitialCamera) {
+        if (s.selectedPointId != null) recalcAnchor() else dynamicAnchor = null
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .then(modifier)
+    ) {
         AndroidView(
             modifier = Modifier
                 .fillMaxSize()
@@ -179,17 +213,18 @@ private fun MapContent(
                     mv.controller.setZoom(s.cameraZoom)
                     mv.controller.setCenter(GeoPoint(s.cameraLatitude, s.cameraLongitude))
                     appliedInitialCamera = true
-
+                    if (s.selectedPointId != null) recalcAnchor()
                 }
 
                 if (mv.overlays.none { it is MapEventsOverlay }) {
                     mv.overlays.add(
                         MapEventsOverlay(object : MapEventsReceiver {
                             override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
-                                if (isMoveModeState.value) return true
+                                if (isMoveModeState.value || s.selectedPointId != null) return true
                                 p?.let { onIntent(MapIntent.AddPoint(it.latitude, it.longitude)) }
                                 return true
                             }
+
                             override fun longPressHelper(p: GeoPoint?) = false
                         })
                     )
@@ -203,13 +238,15 @@ private fun MapContent(
                         relatedObject = point.id
                         setOnMarkerClickListener { m, _ ->
                             if (isMoveModeState.value) return@setOnMarkerClickListener true
-                            val id = m.relatedObject as? Long ?: point.id
+                            val id = (m.relatedObject as? Long) ?: point.id
+
                             val scr = Point().also { mv.projection.toPixels(m.position, it) }
-                            val anchor = Offset(
+                            dynamicAnchor = Offset(
                                 (scr.x - boxOffset.x).toFloat(),
                                 (scr.y - boxOffset.y).toFloat()
                             )
-                            onIntent(MapIntent.SelectPoint(id, anchor))
+
+                            onIntent(MapIntent.SelectPoint(id))
                             true
                         }
                     }
@@ -219,51 +256,44 @@ private fun MapContent(
             }
         )
 
-        if (s.selectedPointId != null && s.radialAnchor != null && !s.isMoveMode) {
+        if (s.selectedPointId != null && dynamicAnchor != null && !s.isMoveMode) {
             RadialMenu(
-                center = s.radialAnchor,
+                center = dynamicAnchor!!,
                 onWeather = { onIntent(MapIntent.LoadWeather(s.selectedPointId)) },
-                onInfo    = { onIntent(MapIntent.NavigateToPointDetails(s.selectedPointId)) },
-                onMove    = { onIntent(MapIntent.StartMoveMode(s.selectedPointId)) },
+                onInfo = { onIntent(MapIntent.NavigateToPointDetails(s.selectedPointId)) },
+                onMove = { onIntent(MapIntent.StartMoveMode(s.selectedPointId)) },
+                onDelete = { onIntent(MapIntent.DeletePoint(s.selectedPointId)) },
                 onDismiss = { onIntent(MapIntent.ClearSelection) }
             )
         }
 
         if (s.isMoveMode) {
             CenterCrosshair()
-
             Row(
                 Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
                     onClick = {
                         val currentCenter = mapView.mapCenter
-                        onIntent(MapIntent.ApplyMove(
-                            latitude = currentCenter.latitude,
-                            longitude = currentCenter.longitude
-                        ))
+                        onIntent(
+                            MapIntent.ApplyMove(
+                                latitude = currentCenter.latitude,
+                                longitude = currentCenter.longitude
+                            )
+                        )
                     },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
-                    Text(
-                        text = "Применить",
-                        color = Color.Green
-                    )
+                    Text(text = "Применить", color = Color.Green)
                 }
-
                 Button(
                     onClick = { onIntent(MapIntent.CancelMoveMode) },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
                     Text(
                         text = "Отменить",
@@ -274,5 +304,4 @@ private fun MapContent(
         }
     }
 }
-
 

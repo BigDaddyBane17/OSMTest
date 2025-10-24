@@ -5,7 +5,7 @@ import com.example.domain.model.CameraState
 
 sealed interface MapIntent {
     data class AddPoint(val lat: Double, val lon: Double) : MapIntent
-    data class SelectPoint(val pointId: Long, val anchor: Offset?) : MapIntent
+    data class SelectPoint(val pointId: Long) : MapIntent
     data class UpdatePointPosition(val pointId: Long, val lat: Double, val lon: Double) : MapIntent
     data class DeletePoint(val pointId: Long) : MapIntent
     data object ClearSelection : MapIntent

@@ -1,5 +1,7 @@
 package com.example.osmtest.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -9,6 +11,7 @@ import androidx.navigation.navArgument
 import com.example.map.MapScreen
 import com.example.mapdetails.MapDetailsScreen
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun AppNavGraph() {
     val navController = rememberNavController()

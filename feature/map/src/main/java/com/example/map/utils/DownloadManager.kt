@@ -1,23 +1,14 @@
 package com.example.map.utils
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL

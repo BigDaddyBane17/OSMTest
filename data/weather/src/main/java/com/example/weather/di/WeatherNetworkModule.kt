@@ -2,13 +2,11 @@ package com.example.weather.di
 
 
 import com.example.weather.api.WeatherApi
-import com.example.weather.repository.WeatherRepository
-import com.example.weather.repository.WeatherRepositoryImpl
-import dagger.hilt.InstallIn
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

@@ -9,27 +9,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun CenterCrosshair() {
     Box(Modifier.fillMaxSize()) {
-        val size = 18.dp
-        val stroke = 2.dp
+        val size = 14.dp
+        val stroke = 1.dp
         Box(
             Modifier
                 .width(stroke)
                 .height(size)
                 .align(Alignment.Center)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(Color.Red),
         )
         Box(
             Modifier
                 .height(stroke)
                 .width(size)
                 .align(Alignment.Center)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(Color.Red)
         )
     }
 }
-

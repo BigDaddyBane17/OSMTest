@@ -5,14 +5,14 @@ import com.example.domain.model.CameraState
 
 sealed interface MapIntent {
     data class AddPoint(val lat: Double, val lon: Double) : MapIntent
-    data class SelectPoint(val pointId: Long, val anchor: Offset?) : MapIntent
+    data class SelectPoint(val pointId: Long) : MapIntent
     data class UpdatePointPosition(val pointId: Long, val lat: Double, val lon: Double) : MapIntent
     data class DeletePoint(val pointId: Long) : MapIntent
     data object ClearSelection : MapIntent
 
     data class StartMoveMode(val pointId: Long) : MapIntent
     data object CancelMoveMode : MapIntent
-    data object ApplyMove : MapIntent
+    data class ApplyMove(val latitude: Double, val longitude: Double) : MapIntent
 
     data class CameraChanged(val camera: CameraState) : MapIntent
 
@@ -26,6 +26,6 @@ sealed interface MapEffect {
     data class Download(
         val url: String,
         val filename: String,
-        val mime: String = "text/csv"
+        val mime:String  = "application/json"
     ) : MapEffect
 }

@@ -78,7 +78,7 @@ class MapViewModel @Inject constructor(
 
             is MapIntent.CameraChanged -> cameraEvents.tryEmit(i.camera)
 
-            is MapIntent.LoadWeather          -> loadWeather(i.pointId)
+            is MapIntent.LoadWeather            -> loadWeather(i.pointId)
             is MapIntent.NavigateToPointDetails -> navigateToPointDetails(i.pointId)
         }
     }

@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -74,7 +75,6 @@ fun MapScreen(
                 is MapEffect.ShowMessage -> launch {
                     snack.showSnackbar(effect.text, duration = SnackbarDuration.Short)
                 }
-
                 is MapEffect.Download -> launch {
                     enqueueDownload(ctx, effect.url, effect.filename, effect.mime)
                 }
@@ -89,18 +89,14 @@ fun MapScreen(
                     .fillMaxSize()
                     .padding(padd),
                 contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            ) { CircularProgressIndicator() }
 
             is MapUiState.Error -> Box(
                 Modifier
                     .fillMaxSize()
                     .padding(padd),
                 contentAlignment = Alignment.Center
-            ) {
-                Text("Ошибка: ${s.message}", color = MaterialTheme.colorScheme.error)
-            }
+            ) { Text("Ошибка: ${s.message}", color = MaterialTheme.colorScheme.error) }
 
             is MapUiState.Success -> MapContent(s, viewmodel::handleIntent, Modifier.padding(padd))
         }
@@ -118,8 +114,11 @@ private fun MapContent(
 
     var boxOffset by remember { mutableStateOf(IntOffset.Zero) }
     var appliedInitialCamera by remember { mutableStateOf(false) }
-    val isMoveModeState = rememberUpdatedState(s.isMoveMode)
     var dynamicAnchor by remember { mutableStateOf<Offset?>(null) }
+
+    val isMoveModeState = rememberUpdatedState(s.isMoveMode)
+    val selectedPointIdState = rememberUpdatedState(s.selectedPointId)
+    val pointsState = rememberUpdatedState(s.points)
 
     val mapView = remember {
         MapView(context).apply {
@@ -129,9 +128,14 @@ private fun MapContent(
         }
     }
 
+    val dismissMenu = {
+        dynamicAnchor = null
+        onIntent(MapIntent.ClearSelection)
+    }
+
     fun recalcAnchor() {
-        val selId = s.selectedPointId ?: run { dynamicAnchor = null; return }
-        val p = s.points.find { it.id == selId } ?: run { dynamicAnchor = null; return }
+        val selId = selectedPointIdState.value ?: run { dynamicAnchor = null; return }
+        val p = pointsState.value.find { it.id == selId } ?: run { dynamicAnchor = null; return }
         val scr = Point()
         mapView.projection.toPixels(GeoPoint(p.latitude, p.longitude), scr)
         dynamicAnchor = Offset(
@@ -144,7 +148,7 @@ private fun MapContent(
         val obs = LifecycleEventObserver { _, e ->
             when (e) {
                 Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_PAUSE  -> mapView.onPause()
                 else -> Unit
             }
         }
@@ -160,30 +164,13 @@ private fun MapContent(
             override fun onScroll(event: ScrollEvent?): Boolean {
                 recalcAnchor()
                 val c = mapView.mapCenter
-                onIntent(
-                    MapIntent.CameraChanged(
-                        CameraState(
-                            c.latitude,
-                            c.longitude,
-                            mapView.zoomLevelDouble
-                        )
-                    )
-                )
+                onIntent(MapIntent.CameraChanged(CameraState(c.latitude, c.longitude, mapView.zoomLevelDouble)))
                 return false
             }
-
             override fun onZoom(event: ZoomEvent?): Boolean {
                 recalcAnchor()
                 val c = mapView.mapCenter
-                onIntent(
-                    MapIntent.CameraChanged(
-                        CameraState(
-                            c.latitude,
-                            c.longitude,
-                            mapView.zoomLevelDouble
-                        )
-                    )
-                )
+                onIntent(MapIntent.CameraChanged(CameraState(c.latitude, c.longitude, mapView.zoomLevelDouble)))
                 return false
             }
         })
@@ -193,11 +180,7 @@ private fun MapContent(
         if (s.selectedPointId != null) recalcAnchor() else dynamicAnchor = null
     }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .then(modifier)
-    ) {
+    Box(Modifier.fillMaxSize().then(modifier)) {
         AndroidView(
             modifier = Modifier
                 .fillMaxSize()
@@ -219,8 +202,15 @@ private fun MapContent(
                 if (mv.overlays.none { it is MapEventsOverlay }) {
                     mv.overlays.add(
                         MapEventsOverlay(object : MapEventsReceiver {
+
                             override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
-                                if (isMoveModeState.value || s.selectedPointId != null) return true
+                                if (selectedPointIdState.value != null) {
+                                    dismissMenu()
+                                    return true
+                                }
+
+                                if (isMoveModeState.value) return true
+
                                 p?.let { onIntent(MapIntent.AddPoint(it.latitude, it.longitude)) }
                                 return true
                             }
@@ -229,9 +219,8 @@ private fun MapContent(
                         })
                     )
                 }
-
                 mv.overlays.removeAll { it is Marker }
-                s.points.forEach { point ->
+                pointsState.value.forEach { point ->
                     val marker = Marker(mv).apply {
                         position = GeoPoint(point.latitude, point.longitude)
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
@@ -258,12 +247,15 @@ private fun MapContent(
 
         if (s.selectedPointId != null && dynamicAnchor != null && !s.isMoveMode) {
             RadialMenu(
-                center = dynamicAnchor!!,
+                center    = dynamicAnchor!!,
                 onWeather = { onIntent(MapIntent.LoadWeather(s.selectedPointId)) },
-                onInfo = { onIntent(MapIntent.NavigateToPointDetails(s.selectedPointId)) },
-                onMove = { onIntent(MapIntent.StartMoveMode(s.selectedPointId)) },
-                onDelete = { onIntent(MapIntent.DeletePoint(s.selectedPointId)) },
-                onDismiss = { onIntent(MapIntent.ClearSelection) }
+                onInfo    = { onIntent(MapIntent.NavigateToPointDetails(s.selectedPointId)) },
+                onMove    = { onIntent(MapIntent.StartMoveMode(s.selectedPointId)) },
+                onDelete  = { onIntent(MapIntent.DeletePoint(s.selectedPointId)) },
+                onDismiss = {
+                    dynamicAnchor = null
+                    onIntent(MapIntent.ClearSelection)
+                }
             )
         }
 
@@ -273,35 +265,24 @@ private fun MapContent(
                 Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
                     onClick = {
                         val currentCenter = mapView.mapCenter
-                        onIntent(
-                            MapIntent.ApplyMove(
-                                latitude = currentCenter.latitude,
-                                longitude = currentCenter.longitude
-                            )
-                        )
+                        onIntent(MapIntent.ApplyMove(currentCenter.latitude, currentCenter.longitude))
                     },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-                ) {
-                    Text(text = "Применить", color = Color.Green)
-                }
+                ) { Text("Применить", color = Color.Green) }
+
                 Button(
                     onClick = { onIntent(MapIntent.CancelMoveMode) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-                ) {
-                    Text(
-                        text = "Отменить",
-                        color = Color.Red
-                    )
-                }
+                ) { Text("Отменить", color = Color.Red) }
             }
         }
     }
 }
-
